@@ -46,9 +46,15 @@ def detect_hand_gesture(frame):
                 return True
     return False
 
+# Function to add overlay with instructions
+def add_overlay(frame, filter_name):
+    cv2.putText(frame, f'Filter: {filter_name}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    cv2.putText(frame, 'Gesture: Thumbs Up to Switch Filters', (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    return frame
+
 # Initialize a filter index
 filter_idx = 0
-filters = [apply_sketch_filter, apply_cartoon_filter, apply_emboss_filter]
+filters = [(apply_sketch_filter, "Sketch"), (apply_cartoon_filter, "Cartoon"), (apply_emboss_filter, "Emboss")]
 
 while True:
     ret, frame = cap.read()
@@ -63,10 +69,14 @@ while True:
         filter_idx = (filter_idx + 1) % len(filters)
 
     # Apply the current filter
-    filtered_frame = filters[filter_idx](frame)
+    filter_function, filter_name = filters[filter_idx]
+    filtered_frame = filter_function(frame)
+
+    # Add overlay with instructions
+    overlay_frame = add_overlay(filtered_frame, filter_name)
 
     # Display the frame with the applied filter and gesture overlay
-    cv2.imshow('Artistic Filters with Gesture Control', filtered_frame)
+    cv2.imshow('Artistic Filters with Gesture Control', overlay_frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
