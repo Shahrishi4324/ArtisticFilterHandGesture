@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import mediapipe as mp
 
 # Initialize the video capture object
 cap = cv2.VideoCapture(0)
@@ -26,6 +27,25 @@ def apply_emboss_filter(frame):
     embossed = cv2.filter2D(frame, -1, kernel)
     return embossed
 
+# Initialize MediaPipe Hands
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands(max_num_hands=1)
+mp_draw = mp.solutions.drawing_utils
+
+# Add hand gesture recognition to switch filters
+def detect_hand_gesture(frame):
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = hands.process(rgb_frame)
+    
+    if results.multi_hand_landmarks:
+        for hand_landmarks in results.multi_hand_landmarks:
+            mp_draw.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+            # Detect a specific gesture to switch filter (e.g., thumbs up)
+            landmarks = hand_landmarks.landmark
+            if landmarks[4].y < landmarks[3].y:  # Thumb is up
+                return True
+    return False
+
 # Initialize a filter index
 filter_idx = 0
 filters = [apply_sketch_filter, apply_cartoon_filter, apply_emboss_filter]
@@ -35,17 +55,20 @@ while True:
     if not ret:
         break
 
-    # Apply the current filter based on filter_idx
+    # Detect hand gestures
+    gesture_detected = detect_hand_gesture(frame)
+
+    # Switch filter if gesture is detected
+    if gesture_detected:
+        filter_idx = (filter_idx + 1) % len(filters)
+
+    # Apply the current filter
     filtered_frame = filters[filter_idx](frame)
 
-    # Display the frame with the applied filter
-    cv2.imshow('Artistic Filters', filtered_frame)
+    # Display the frame with the applied filter and gesture overlay
+    cv2.imshow('Artistic Filters with Gesture Control', filtered_frame)
 
-    # Change filter on 'f' key press
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord('f'):
-        filter_idx = (filter_idx + 1) % len(filters)
-    elif key == ord('q'):
+    if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 cap.release()
