@@ -17,7 +17,7 @@ This project implements a real-time artistic filter application that uses hand g
 ## How to Run
 1. Clone the repository:
    ```bash
-   git clone https://github.com/YourUsername/OpenCVArtisticFilters.git
+   git clone https://github.com/Shahrishi4324/OpenCVArtisticFilters.git
    cd OpenCVArtisticFilters
 2. Install the above packages
 3. Run: python artistic_filters.py
